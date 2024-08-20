@@ -1,0 +1,142 @@
+﻿<Window x:Class="RS.ImageExplorer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:RS.ImageExplorer"
+        mc:Ignorable="d"
+        Title="RS Image Explorer" Height="600" Width="800"
+        Icon="pack://application:,,,/Images/Icon64x64.png"
+        Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+        PreviewKeyDown="MainWindow_PreviewKeyDown">
+    <Window.Resources>
+        <local:ThumbnailWidthConverter x:Key="ThumbnailWidthConverter"/>
+        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="100"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="210" MinWidth="100"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>            
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <ToolBar Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3">
+            <Button x:Name="PrevButton" ToolTip="Anterior (Flecha Izquierda)" Click="PrevButton_Click">
+                <Path Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" Fill="Black" />
+            </Button>
+            <Button x:Name="NextButton" ToolTip="Siguiente (Flecha Derecha)" Click="NextButton_Click">
+                <Path Data="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" Fill="Black" />
+            </Button>
+            <Button x:Name="FullScreenButton" ToolTip="Pantalla Completa (Enter)" Click="FullScreenButton_Click">
+                <Path Data="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" Fill="Black" />
+            </Button>
+            <Button x:Name="SelectButton" ToolTip="Seleccionar/Deseleccionar (Espacio)" Click="SelectButton_Click">
+                <Path Data="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z" Fill="Black" />
+            </Button>
+            <Button x:Name="LoadFolderButton" ToolTip="Cargar Carpeta (F11)" Click="LoadFolderButton_Click">
+                <Path Data="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z" Fill="Black" />
+            </Button>
+            <Button x:Name="CopySelectedButton" ToolTip="Copiar Seleccionados (F12)" Click="CopySelectedButton_Click">
+                <Path Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" Fill="Black" />
+            </Button>
+        </ToolBar>
+
+        <!-- Área principal de la imagen con indicador de selección -->
+        <Grid Grid.Column="0" Grid.Row="1">
+            <Image x:Name="MainImage" Stretch="Uniform" MouseLeftButtonDown="MainImage_MouseClick" PreviewMouseWheel="MainImage_PreviewMouseWheel"/>
+            <Canvas x:Name="SelectionIndicatorCanvas" IsHitTestVisible="False">
+                <Path x:Name="SelectionIndicator" 
+                  Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"
+                  Fill="Aquamarine" Opacity="1" Visibility="Collapsed"
+                  Width="24" Height="24" 
+                  Canvas.Right="10" Canvas.Top="10"/>
+            </Canvas>
+        </Grid>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Column="1" Grid.Row="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" 
+                          Background="LightGray" ShowsPreview="True"/>
+
+        <ListBox x:Name="SelectedImagesList" Grid.Column="2" Grid.Row="1" Background="Transparent" BorderThickness="0" Focusable="False" PreviewKeyDown="SelectedImagesList_PreviewKeyDown" SelectionChanged="SelectedImagesList_SelectionChanged">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <!-- Imagen seleccionada -->
+                        <Image Source="{Binding}" Stretch="UniformToFill" Margin="0,0,0,0">
+                            <Image.Width>
+                                <MultiBinding Converter="{StaticResource ThumbnailWidthConverter}">
+                                    <Binding Path="ActualWidth" ElementName="SelectedImagesList"/>
+                                    <Binding Path="Padding" ElementName="SelectedImagesList"/>
+                                </MultiBinding>
+                            </Image.Width>
+                        </Image>
+
+                        <!-- Botón de eliminar -->
+                        <Button ToolTip="Eliminar" Click="DeleteSelected_Click" Width="30" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Opacity" Value="0"/>
+                                    <!-- Invisible por defecto -->
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Grid>
+                                                    <!-- Ícono de papelera de reciclaje ajustado -->
+                                                    <Path x:Name="TrashIcon" Data="M3,6H5H21V8H19L17.25,18.25C17.16,18.77 16.71,19.19 16.18,19.19H7.81C7.29,19.19 6.83,18.77 6.75,18.25L5,8H3V6M19,6V4C19,3.45 18.55,3 18,3H14V2C14,1.45 13.55,1 13,1H11C10.45,1 10,1.45 10,2V3H6C5.45,3 5,3.45 5,4V6H19Z"
+                                                  Fill="White"
+                                                  Width="20"
+                                                  Height="20"
+                                                  Stretch="Uniform"
+                                                  Margin="2,2,2,2"/>
+                                                </Grid>
+                                                <ControlTemplate.Triggers>
+                                                    <!-- Cambiar color del ícono y fondo cuando el mouse está sobre el botón -->
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="TrashIcon" Property="Fill" Value="Red"/>
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <!-- Mostrar botón al hacer hover sobre la imagen -->
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                                            <Setter Property="Opacity" Value="1"/>
+                                        </DataTrigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Cursor" Value="Hand"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <!-- Barra de estado -->
+        <StatusBar Grid.Row="2" Grid.ColumnSpan="3">
+            <TextBlock Text="Carpeta: " />
+            <TextBlock Text="{Binding CurrentFolder}" />
+            <TextBlock Text=" - Imagen: " />
+            <TextBlock Text="{Binding CurrentImage}" />
+            <TextBlock Text=" (" />
+            <TextBlock Text="{Binding CurrentPosition}" />
+            <TextBlock Text="/" />
+            <TextBlock Text="{Binding TotalImages}" />
+            <TextBlock Text=") - Seleccionada: " />
+            <TextBlock Text="{Binding IsSelected}" />
+        </StatusBar>
+    </Grid>
+</Window>
