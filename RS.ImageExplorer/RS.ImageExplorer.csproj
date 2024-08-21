@@ -6,16 +6,32 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
+    <PackageIcon>Icon64x64.png</PackageIcon>
+    <AssemblyVersion>1.0.0.2</AssemblyVersion>
+    <FileVersion>1.0.0.2</FileVersion>
+    <Title>RS Image Explorer</Title>
+    <Product>RS Image Explorer</Product>
+    <Company>RS Software</Company>
+    <Description>Image Browsing and Selection in Full Screen mode</Description>
+    <Copyright>2024</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Images\Icon64x64.png" />
+    <Content Include="Images\favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Images\Icon64x64.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Images\Icon64x64.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -41,6 +41,13 @@ namespace RS.ImageExplorer
             set { SetProperty(ref _isSelected, value); }
         }
 
+        private int _selectedCount;
+        public int SelectedCount
+        {
+            get { return _selectedCount; }
+            set { SetProperty(ref _selectedCount, value); }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

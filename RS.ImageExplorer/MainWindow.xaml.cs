@@ -5,6 +5,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 
@@ -29,6 +31,7 @@ namespace RS.ImageExplorer
 
         }
 
+        // Método para cargar imágenes desde una carpeta
         private void LoadImages(string folderPath)
         {
             imagePaths = Directory.GetFiles(folderPath, "*.*")
@@ -45,14 +48,89 @@ namespace RS.ImageExplorer
             }
         }
 
+        // Método para mostrar la imagen en el control
         private void DisplayImage(string imagePath)
         {
-            MainImage.Source = new BitmapImage(new Uri(imagePath));
+            MainImage.Source = null; // Liberar la referencia anterior
+
+            // Leer la imagen desde el disco a un MemoryStream para evitar el caché
+            byte[] imageData = File.ReadAllBytes(imagePath);
+            using (MemoryStream memoryStream = new MemoryStream(imageData))
+            {
+                BitmapImage bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad; // Asegura la carga completa en memoria
+                bitmap.StreamSource = memoryStream; // Cargar desde el MemoryStream
+                bitmap.EndInit();
+                bitmap.Freeze(); // Mejora la estabilidad para el uso en múltiples hilos
+
+                MainImage.Source = bitmap; // Asignar la nueva imagen al control
+            }
+
+            // Actualizar ViewModel
             viewModel.CurrentImage = Path.GetFileName(imagePath);
-            viewModel.CurrentPosition = currentIndex + 1; 
+            viewModel.CurrentPosition = currentIndex + 1;
             UpdateSelectionIndicator();
         }
+        
+        private void RotateImage(bool clockwise = true)
+        {
+            if (imagePaths != null && imagePaths.Any())
+            {
+                string currentImagePath = imagePaths[currentIndex];
 
+                try
+                {
+                    // Leer la imagen desde el disco a un MemoryStream para evitar el caché
+                    byte[] imageData = File.ReadAllBytes(currentImagePath);
+                    using (MemoryStream memoryStream = new MemoryStream(imageData))
+                    {
+                        BitmapImage bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad; // Asegura la carga completa en memoria
+                        bitmap.StreamSource = memoryStream; // Cargar desde el MemoryStream
+                        bitmap.EndInit();
+                        bitmap.Freeze(); // Mejora la estabilidad para el uso en múltiples hilos
+
+                        // Rotar la imagen 90 grados
+                        TransformedBitmap rotatedBitmap = new TransformedBitmap(bitmap, new RotateTransform(clockwise ? 90 : -90));
+
+                        // Guardar la imagen rotada
+                        string directory = Path.GetDirectoryName(currentImagePath);
+                        string filename = Path.GetFileNameWithoutExtension(currentImagePath);
+                        string extension = Path.GetExtension(currentImagePath);
+                        string rotatedImagePath = Path.Combine(directory, $"{filename}{extension}");
+
+                        using (FileStream stream = new FileStream(rotatedImagePath, FileMode.Create))
+                        {
+                            BitmapEncoder encoder;
+                            if (extension.ToLower() == ".jpg" || extension.ToLower() == ".jpeg")
+                            {
+                                encoder = new JpegBitmapEncoder();
+                            }
+                            else if (extension.ToLower() == ".png")
+                            {
+                                encoder = new PngBitmapEncoder();
+                            }
+                            else
+                            {
+                                throw new NotSupportedException("Formato de imagen no soportado.");
+                            }
+                            encoder.Frames.Add(BitmapFrame.Create(rotatedBitmap));
+                            encoder.Save(stream);
+                        }
+                    }
+
+                    // Actualizar la imagen actual en la lista y mostrar la imagen rotada
+                    DisplayImage(currentImagePath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al rotar la imagen: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+              
         private void NextImage()
         {
             if (currentIndex < imagePaths.Count - 1)
@@ -124,6 +202,9 @@ namespace RS.ImageExplorer
                 selectedImages.Add(currentImage);
                 viewModel.IsSelected = true;
             }
+
+            viewModel.SelectedCount = selectedImages.Count;
+
             UpdateSelectionDisplay();
             UpdateSelectionIndicator();
         }
@@ -161,6 +242,8 @@ namespace RS.ImageExplorer
             }
             MessageBox.Show("Imágenes seleccionadas copiadas exitosamente.", "Operación completada", MessageBoxButton.OK, MessageBoxImage.Information);
         }
+                      
+
 
         // Manejadores de eventos
 
@@ -257,6 +340,16 @@ namespace RS.ImageExplorer
             }
         }
 
+        private void RotateButton_Click(object sender, RoutedEventArgs e)
+        {
+            RotateImage();
+        }
+
+        private void RotateLButton_Click(object sender, RoutedEventArgs e)
+        {
+            RotateImage(false);
+        }
+
         private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             HandleKeyDown(e);
@@ -291,6 +384,12 @@ namespace RS.ImageExplorer
                     break;
                 case Key.F12:
                     CopySelectedButton_Click(null, null);
+                    break;
+                case Key.R when Keyboard.Modifiers == ModifierKeys.Control:
+                    RotateImage();
+                    break;
+                case Key.W when Keyboard.Modifiers == ModifierKeys.Control:
+                    RotateImage(false);
                     break;
             }
         }

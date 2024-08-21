@@ -48,6 +48,16 @@
             <Button x:Name="CopySelectedButton" ToolTip="Copiar Seleccionados (F12)" Click="CopySelectedButton_Click">
                 <Path Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" Fill="Black" />
             </Button>
+            <Button x:Name="RotateLButton" ToolTip="Rotar -90 grados (Ctrl+W)" Click="RotateLButton_Click">
+                <Path Data="F1 M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" Fill="Black" RenderTransformOrigin="0.5,0.5">
+                    <Path.RenderTransform>
+                        <ScaleTransform ScaleX="-1" />
+                    </Path.RenderTransform>
+                </Path>
+            </Button>
+            <Button x:Name="RotateButton" ToolTip="Rotar 90 grados (Ctrl+R)" Click="RotateButton_Click">
+                <Path Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" Fill="Black" />
+            </Button>
         </ToolBar>
 
         <!-- Área principal de la imagen con indicador de selección -->
@@ -135,8 +145,8 @@
             <TextBlock Text="{Binding CurrentPosition}" />
             <TextBlock Text="/" />
             <TextBlock Text="{Binding TotalImages}" />
-            <TextBlock Text=") - Seleccionada: " />
-            <TextBlock Text="{Binding IsSelected}" />
+            <TextBlock Text=") - Seleccionadas: " />
+            <TextBlock Text="{Binding SelectedCount}" />
         </StatusBar>
     </Grid>
 </Window>
