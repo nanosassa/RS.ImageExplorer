@@ -74,7 +74,7 @@
 
         <!-- GridSplitter -->
         <GridSplitter Grid.Column="1" Grid.Row="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" 
-                          Background="LightGray" ShowsPreview="True"/>
+                          Background="LightGray" ShowsPreview="True" Focusable="False"/>
 
         <ListBox x:Name="SelectedImagesList" Grid.Column="2" Grid.Row="1" Background="Transparent" BorderThickness="0" Focusable="False" PreviewKeyDown="SelectedImagesList_PreviewKeyDown" SelectionChanged="SelectedImagesList_SelectionChanged">
             <ListBox.ItemTemplate>
