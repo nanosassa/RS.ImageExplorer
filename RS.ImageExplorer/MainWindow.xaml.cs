@@ -40,6 +40,11 @@ namespace RS.ImageExplorer
 
             viewModel.CurrentFolder = folderPath;
             viewModel.TotalImages = imagePaths.Count;
+            
+            currentIndex = 0;
+            viewModel.SelectedCount = 0;
+            selectedImages.Clear();
+
 
             if (imagePaths.Any())
             {
